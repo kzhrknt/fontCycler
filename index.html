@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Font Cycler</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com" defer></script>
+    <!-- Google Fonts (expanded list) -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Playfair+Display:wght@400;700&family=Oswald:wght@400;700&family=Courier+Prime&family=Lobster&family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Bebas+Neue&family=Merriweather:wght@400;700&family=Lato:wght@400;700&family=Open+Sans:wght@400;700&family=Source+Sans+Pro:wght@400;700&family=Nunito:wght@400;700&family=Raleway:wght@400;700&family=Ubuntu:wght@400;700&family=Inter:wght@400;700&family=Noto+Sans:wght@400;700&family=Quicksand:wght@400;700&family=Fira+Sans:wght@400;700&family=Work+Sans:wght@400;700&family=Crimson+Text:wght@400;700&family=Libre+Baskerville:wght@400;700&family=PT+Serif:wght@400;700&family=Cormorant+Garamond:wght@400;700&family=Vollkorn:wght@400;700&family=Alegreya:wght@400;700&family=Arvo:wght@400;700&family=Bitter:wght@400;700&family=Domine:wght@400;700&family=Zilla+Slab:wght@400;700&family=Dancing+Script:wght@400;700&family=Pacifico&family=Kaushan+Script&family=Great+Vibes&family=Satisfy&family=Courgette&family=Amatic+SC:wght@400;700&family=Caveat:wght@400;700&family=Righteous&family=Comfortaa:wght@400;700&display=swap" rel="stylesheet" />
+  </head>
+  <body class="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+    <div id="root"></div>
+
+    <!-- React & React-DOM (UMD) -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" defer></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" defer></script>
+    <!-- Babel for in-browser JSX transformation -->
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js" defer></script>
+    <!-- GIF.js for GIF generation -->
+    <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.min.js" defer></script>
+
+    <!-- Main Script (deferred so all deps are present) -->
+    <script type="text/babel" data-presets="es2015,react">
+      // Expanded font list (remember to add to Google Fonts link)
+      var FONT_LIST = [
+        { name: 'Roboto', family: '"Roboto", sans-serif' },
+        { name: 'Playfair Display', family: '"Playfair Display", serif' },
+        { name: 'Oswald', family: '"Oswald", sans-serif' },
+        { name: 'Courier Prime', family: '"Courier Prime", monospace' },
+        { name: 'Lobster', family: '"Lobster", cursive' },
+        { name: 'Montserrat', family: '"Montserrat", sans-serif' },
+        { name: 'Poppins', family: '"Poppins", sans-serif' },
+        { name: 'Bebas Neue', family: '"Bebas Neue", cursive' },
+        { name: 'Merriweather', family: '"Merriweather", serif' },
+        { name: 'Lato', family: '"Lato", sans-serif' },
+        { name: 'Open Sans', family: '"Open Sans", sans-serif' },
+        { name: 'Source Sans Pro', family: '"Source Sans Pro", sans-serif' },
+        { name: 'Nunito', family: '"Nunito", sans-serif' },
+        { name: 'Raleway', family: '"Raleway", sans-serif' },
+        { name: 'Ubuntu', family: '"Ubuntu", sans-serif' },
+        { name: 'Inter', family: '"Inter", sans-serif' },
+        { name: 'Noto Sans', family: '"Noto Sans", sans-serif' },
+        { name: 'Quicksand', family: '"Quicksand", sans-serif' },
+        { name: 'Fira Sans', family: '"Fira Sans", sans-serif' },
+        { name: 'Work Sans', family: '"Work Sans", sans-serif' },
+        { name: 'Crimson Text', family: '"Crimson Text", serif' },
+        { name: 'Libre Baskerville', family: '"Libre Baskerville", serif' },
+        { name: 'PT Serif', family: '"PT Serif", serif' },
+        { name: 'Cormorant Garamond', family: '"Cormorant Garamond", serif' },
+        { name: 'Vollkorn', family: '"Vollkorn", serif' },
+        { name: 'Alegreya', family: '"Alegreya", serif' },
+        { name: 'Arvo', family: '"Arvo", serif' },
+        { name: 'Bitter', family: '"Bitter", serif' },
+        { name: 'Domine', family: '"Domine", serif' },
+        { name: 'Zilla Slab', family: '"Zilla Slab", serif' },
+        { name: 'Dancing Script', family: '"Dancing Script", cursive' },
+        { name: 'Pacifico', family: '"Pacifico", cursive' },
+        { name: 'Kaushan Script', family: '"Kaushan Script", cursive' },
+        { name: 'Great Vibes', family: '"Great Vibes", cursive' },
+        { name: 'Satisfy', family: '"Satisfy", cursive' },
+        { name: 'Courgette', family: '"Courgette", cursive' },
+        { name: 'Amatic SC', family: '"Amatic SC", cursive' },
+        { name: 'Caveat', family: '"Caveat", cursive' },
+        { name: 'Righteous', family: '"Righteous", cursive' },
+        { name: 'Comfortaa', family: '"Comfortaa", cursive' },
+      ];
+
+      function App() {
+        var _React = React, useState = _React.useState, useEffect = _React.useEffect, useMemo = _React.useMemo;
+
+        var _useState = useState('Hello'), text = _useState[0], setText = _useState[1];
+        var _useState2 = useState('#000000'), fontColor = _useState2[0], setFontColor = _useState2[1];
+        var _useState3 = useState('#00000000'), bgColor = _useState3[0], setBgColor = _useState3[1];
+        var _useState4 = useState(100), intervalMs = _useState4[0], setIntervalMs = _useState4[1];
+        var _useState5 = useState(FONT_LIST.map(function (f) { return f.name; })), selectedFonts = _useState5[0], setSelectedFonts = _useState5[1];
+        var _useState6 = useState('16:9'), aspectRatio = _useState6[0], setAspectRatio = _useState6[1];
+        var _useState7 = useState(0), currentFontIdx = _useState7[0], setCurrentFontIdx = _useState7[1];
+        var _useState8 = useState(false), isRecording = _useState8[0], setIsRecording = _useState8[1];
+        var _useState9 = useState(null), mediaRecorder = _useState9[0], setMediaRecorder = _useState9[1];
+        var _useState10 = useState([]), recordedChunks = _useState10[0], setRecordedChunks = _useState10[1];
+        var _useState11 = useState('webm'), exportFormat = _useState11[0], setExportFormat = _useState11[1];
+
+        // Animation effect
+        useEffect(function () {
+          if (!selectedFonts.length) return;
+          var id = setInterval(function () {
+            setCurrentFontIdx(function (prev) { return (prev + 1) % selectedFonts.length; });
+          }, intervalMs);
+          return function () { clearInterval(id); };
+        }, [intervalMs, selectedFonts]);
+
+        // Current font
+        var currentFont = (function () {
+          for (var i = 0; i < FONT_LIST.length; i++) {
+            if (FONT_LIST[i].name === selectedFonts[currentFontIdx]) return FONT_LIST[i].family;
+          }
+          return 'sans-serif';
+        })();
+
+        // Aspect ratio padding
+        var aspectPadding = useMemo(function () {
+          var parts = aspectRatio.split(':');
+          var w = Number(parts[0]);
+          var h = Number(parts[1]);
+          return (h / w) * 100 + '%';
+        }, [aspectRatio]);
+
+        // Recording functions
+        var startRecording = function () {
+          if (!selectedFonts.length) {
+            alert('Please select at least one font to record');
+            return;
+          }
+
+          setIsRecording(true);
+          setCurrentFontIdx(0);
+
+          if (exportFormat === 'gif') {
+            recordAsGif();
+          } else {
+            recordAsVideo();
+          }
+        };
+
+        var recordAsVideo = function () {
+          // Create canvas
+          var canvas = document.createElement('canvas');
+          var ctx = canvas.getContext('2d');
+          
+          // Set canvas size based on aspect ratio
+          var parts = aspectRatio.split(':');
+          var w = Number(parts[0]);
+          var h = Number(parts[1]);
+          canvas.width = 1920; // Full HD width
+          canvas.height = (canvas.width * h) / w;
+
+          // Start recording
+          var stream = canvas.captureStream(30); // 30 FPS
+          var mimeType = exportFormat === 'mp4' ? 'video/mp4' : 'video/webm';
+          
+          // Try different codecs for MP4
+          var supportedTypes = [
+            'video/mp4;codecs=h264',
+            'video/mp4;codecs=avc1',
+            'video/mp4',
+            'video/webm;codecs=vp9',
+            'video/webm;codecs=vp8',
+            'video/webm'
+          ];
+          
+          var finalMimeType = 'video/webm';
+          var fileExtension = 'webm';
+          
+          if (exportFormat === 'mp4') {
+            for (var i = 0; i < supportedTypes.length; i++) {
+              if (MediaRecorder.isTypeSupported(supportedTypes[i])) {
+                finalMimeType = supportedTypes[i];
+                fileExtension = supportedTypes[i].startsWith('video/mp4') ? 'mp4' : 'webm';
+                break;
+              }
+            }
+          }
+
+          var recorder = new MediaRecorder(stream, { mimeType: finalMimeType });
+          var chunks = [];
+
+          recorder.ondataavailable = function (e) {
+            if (e.data.size > 0) {
+              chunks.push(e.data);
+            }
+          };
+
+          recorder.onstop = function () {
+            var blob = new Blob(chunks, { type: finalMimeType });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'font-cycle-' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.' + fileExtension;
+            a.click();
+            URL.revokeObjectURL(url);
+          };
+
+          setMediaRecorder(recorder);
+          recorder.start();
+
+          // Record one full cycle
+          var fontIndex = 0;
+          var recordFrame = function () {
+            if (fontIndex >= selectedFonts.length) {
+              recorder.stop();
+              setIsRecording(false);
+              setMediaRecorder(null);
+              return;
+            }
+
+            // Clear canvas
+            ctx.fillStyle = bgColor === '#00000000' ? '#ffffff' : bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw text
+            var font = selectedFonts[fontIndex];
+            var fontFamily = '';
+            for (var i = 0; i < FONT_LIST.length; i++) {
+              if (FONT_LIST[i].name === font) {
+                fontFamily = FONT_LIST[i].family;
+                break;
+              }
+            }
+
+            ctx.fillStyle = fontColor;
+            ctx.font = '120px ' + fontFamily.replace(/"/g, '');
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+            fontIndex++;
+            setTimeout(recordFrame, intervalMs);
+          };
+
+          recordFrame();
+        };
+
+        var recordAsGif = function () {
+          // Create canvas
+          var canvas = document.createElement('canvas');
+          var ctx = canvas.getContext('2d');
+          
+          // Set canvas size for GIF (smaller for file size)
+          var parts = aspectRatio.split(':');
+          var w = Number(parts[0]);
+          var h = Number(parts[1]);
+          canvas.width = 800; // Smaller width for GIF
+          canvas.height = (canvas.width * h) / w;
+
+          var frames = [];
+          var fontIndex = 0;
+          
+          var captureFrame = function () {
+            if (fontIndex >= selectedFonts.length) {
+              // Generate GIF using simple approach
+              generateGif(frames);
+              return;
+            }
+
+            // Clear canvas
+            ctx.fillStyle = bgColor === '#00000000' ? '#ffffff' : bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw text
+            var font = selectedFonts[fontIndex];
+            var fontFamily = '';
+            for (var i = 0; i < FONT_LIST.length; i++) {
+              if (FONT_LIST[i].name === font) {
+                fontFamily = FONT_LIST[i].family;
+                break;
+              }
+            }
+
+            ctx.fillStyle = fontColor;
+            ctx.font = (canvas.width / 15) + 'px ' + fontFamily.replace(/"/g, '');
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+            // Capture frame
+            frames.push(canvas.toDataURL('image/png'));
+            fontIndex++;
+            setTimeout(captureFrame, intervalMs);
+          };
+
+          captureFrame();
+        };
+
+        var generateGif = function (frames) {
+          if (typeof GIF === 'undefined') {
+            // Fallback to PNG if GIF.js is not available
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext('2d');
+            var parts = aspectRatio.split(':');
+            var w = Number(parts[0]);
+            var h = Number(parts[1]);
+            canvas.width = 800;
+            canvas.height = (canvas.width * h) / w;
+
+            var img = new Image();
+            img.onload = function () {
+              ctx.drawImage(img, 0, 0);
+              canvas.toBlob(function (blob) {
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'font-cycle-' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.png';
+                a.click();
+                URL.revokeObjectURL(url);
+                setIsRecording(false);
+              }, 'image/png');
+            };
+            img.src = frames[0];
+            return;
+          }
+
+          // Use GIF.js for proper GIF generation
+          var parts = aspectRatio.split(':');
+          var w = Number(parts[0]);
+          var h = Number(parts[1]);
+          var width = 800;
+          var height = (width * h) / w;
+
+          var gif = new GIF({
+            workers: 2,
+            quality: 10,
+            width: width,
+            height: height,
+            workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
+          });
+
+          var loadedFrames = 0;
+          var totalFrames = frames.length;
+
+          frames.forEach(function (frameData, index) {
+            var img = new Image();
+            img.onload = function () {
+              var canvas = document.createElement('canvas');
+              var ctx = canvas.getContext('2d');
+              canvas.width = width;
+              canvas.height = height;
+              ctx.drawImage(img, 0, 0, width, height);
+              
+              gif.addFrame(canvas, { delay: intervalMs });
+              loadedFrames++;
+              
+              if (loadedFrames === totalFrames) {
+                gif.render();
+              }
+            };
+            img.src = frameData;
+          });
+
+          gif.on('finished', function (blob) {
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'font-cycle-' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.gif';
+            a.click();
+            URL.revokeObjectURL(url);
+            setIsRecording(false);
+          });
+        };
+
+        // --- Render ---
+        return (
+          <div className="p-4 w-full max-w-5xl">
+            <h1 className="text-2xl font-bold mb-6">Font Cycler</h1>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Controls */}
+              <div className="space-y-4">
+                <label className="block">
+                  <span className="text-sm font-medium">Text to animate</span>
+                  <input className="mt-1 w-full p-2 border rounded" value={text} onChange={function (e) { setText(e.target.value); }} />
+                </label>
+
+                <label className="block">
+                  <span className="text-sm font-medium">Font color</span>
+                  <input type="color" className="mt-1" value={fontColor} onChange={function (e) { setFontColor(e.target.value); }} />
+                </label>
+
+                <label className="block">
+                  <span className="text-sm font-medium">Background color</span>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <input type="color" value={bgColor} onChange={function (e) { setBgColor(e.target.value); }} />
+                    <button type="button" className="text-xs underline" onClick={function () { setBgColor('#00000000'); }}>Transparent</button>
+                  </div>
+                </label>
+
+                <label className="block">
+                  <span className="text-sm font-medium">Interval (ms)</span>
+                  <input type="number" min="20" step="10" className="mt-1 w-full p-2 border rounded" value={intervalMs} onChange={function (e) { setIntervalMs(Number(e.target.value)); }} />
+                </label>
+
+                <label className="block">
+                  <span className="text-sm font-medium">Aspect ratio</span>
+                  <select className="mt-1 p-2 border rounded w-full" value={aspectRatio} onChange={function (e) { setAspectRatio(e.target.value); }}>
+                    <option value="16:9">16:9</option>
+                    <option value="4:3">4:3</option>
+                    <option value="1:1">1:1</option>
+                    <option value="9:16">9:16</option>
+                    <option value="3:4">3:4</option>
+                  </select>
+                </label>
+              </div>
+
+              {/* Font Selection with collapsible UI */}
+              <div>
+                <details className="border rounded p-2">
+                  <summary className="cursor-pointer font-medium select-none">
+                    Select fonts ({selectedFonts.length})
+                  </summary>
+                  <div className="flex gap-2 mt-2 mb-3">
+                    <button
+                      type="button"
+                      className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+                      onClick={function () {
+                        setSelectedFonts(FONT_LIST.map(function (f) { return f.name; }));
+                      }}
+                    >
+                      全選択
+                    </button>
+                    <button
+                      type="button"
+                      className="px-3 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600"
+                      onClick={function () {
+                        setSelectedFonts([]);
+                      }}
+                    >
+                      全選択解除
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {FONT_LIST.map(function (font) {
+                      var checked = selectedFonts.indexOf(font.name) !== -1;
+                      return (
+                        <label key={font.name} className="flex items-center space-x-2 p-1 border rounded">
+                          <input type="checkbox" checked={checked} onChange={function (e) {
+                            if (e.target.checked) {
+                              setSelectedFonts(selectedFonts.concat(font.name));
+                            } else {
+                              setSelectedFonts(selectedFonts.filter(function (f) { return f !== font.name; }));
+                            }
+                          }} />
+                          <span style={{ fontFamily: font.family }}>{font.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </details>
+              </div>
+            </div>
+
+            {/* Recording Controls */}
+            <div className="mt-6 space-y-4">
+              <div className="flex flex-wrap gap-4 items-center">
+                <label className="flex items-center space-x-2">
+                  <span className="text-sm font-medium">Export format:</span>
+                  <select 
+                    className="p-2 border rounded" 
+                    value={exportFormat} 
+                    onChange={function (e) { setExportFormat(e.target.value); }}
+                    disabled={isRecording}
+                  >
+                    <option value="webm">WebM (Recommended)</option>
+                    <option value="mp4">MP4 (Browser dependent)</option>
+                    <option value="gif">GIF (PNG fallback)</option>
+                  </select>
+                </label>
+                
+                <button
+                  type="button"
+                  className={`px-6 py-3 font-medium text-white rounded-lg ${
+                    isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
+                  }`}
+                  onClick={startRecording}
+                  disabled={isRecording}
+                >
+                  {isRecording ? 'Recording...' : 'Record 1 Loop'}
+                </button>
+              </div>
+              
+              {isRecording && (
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-gray-600">Recording in progress</span>
+                </div>
+              )}
+              
+              {exportFormat === 'mp4' && (
+                <div className="text-sm text-yellow-600 bg-yellow-50 p-2 rounded">
+                  <strong>Note:</strong> MP4 support depends on your browser. Falls back to WebM if not supported.
+                </div>
+              )}
+              
+              {exportFormat === 'gif' && (
+                <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded">
+                  <strong>Note:</strong> GIF generation uses gif.js library for proper animated GIF output.
+                </div>
+              )}
+            </div>
+
+            {/* Preview */}
+            <div className="mt-8">
+              <div id="preview-container" className="w-full relative border rounded-lg overflow-hidden" style={{ backgroundColor: bgColor, color: fontColor }}>
+                <div style={{ paddingTop: aspectPadding }}></div>
+                <div className="absolute inset-0 flex items-center justify-center p-4">
+                  <span className="break-words text-center" style={{ fontFamily: currentFont, fontSize: 'clamp(2rem, 10vw, 8rem)' }}>
+                    {text}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // Mount React
+      (function () {
+        var root = document.getElementById('root');
+        if (ReactDOM.createRoot) {
+          ReactDOM.createRoot(root).render(<App />);
+        } else {
+          ReactDOM.render(<App />, root);
+        }
+      })();
+    </script>
+  </body>
+</html>
