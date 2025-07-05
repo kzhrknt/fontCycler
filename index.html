@@ -80,6 +80,7 @@
         var _useState9 = useState(null), mediaRecorder = _useState9[0], setMediaRecorder = _useState9[1];
         var _useState10 = useState([]), recordedChunks = _useState10[0], setRecordedChunks = _useState10[1];
         var _useState11 = useState('webm'), exportFormat = _useState11[0], setExportFormat = _useState11[1];
+        var _useState12 = useState(false), transparentBackground = _useState12[0], setTransparentBackground = _useState12[1];
 
         // Animation effect
         useEffect(function () {
@@ -118,6 +119,8 @@
 
           if (exportFormat === 'gif') {
             recordAsGif();
+          } else if (transparentBackground) {
+            recordAsPngSequence();
           } else {
             recordAsVideo();
           }
@@ -195,8 +198,12 @@
             }
 
             // Clear canvas
-            ctx.fillStyle = bgColor === '#00000000' ? '#ffffff' : bgColor;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (transparentBackground) {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+            } else {
+              ctx.fillStyle = bgColor === '#00000000' ? '#ffffff' : bgColor;
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
 
             // Draw text
             var font = selectedFonts[fontIndex];
@@ -219,6 +226,84 @@
           };
 
           recordFrame();
+        };
+
+        var recordAsPngSequence = function () {
+          // Create canvas
+          var canvas = document.createElement('canvas');
+          var ctx = canvas.getContext('2d');
+          
+          // Set canvas size based on aspect ratio
+          var parts = aspectRatio.split(':');
+          var w = Number(parts[0]);
+          var h = Number(parts[1]);
+          canvas.width = 1920; // Full HD width
+          canvas.height = (canvas.width * h) / w;
+
+          var pngFrames = [];
+          var fontIndex = 0;
+          
+          var captureFrame = function () {
+            if (fontIndex >= selectedFonts.length) {
+              // Create ZIP file with PNG frames
+              createPngZip(pngFrames);
+              return;
+            }
+
+            // Clear canvas (transparent)
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw text
+            var font = selectedFonts[fontIndex];
+            var fontFamily = '';
+            for (var i = 0; i < FONT_LIST.length; i++) {
+              if (FONT_LIST[i].name === font) {
+                fontFamily = FONT_LIST[i].family;
+                break;
+              }
+            }
+
+            ctx.fillStyle = fontColor;
+            ctx.font = '120px ' + fontFamily.replace(/"/g, '');
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+            // Capture frame as PNG
+            var frameData = canvas.toDataURL('image/png');
+            pngFrames.push({
+              name: 'frame_' + String(fontIndex).padStart(3, '0') + '_' + font.replace(/[^a-zA-Z0-9]/g, '_') + '.png',
+              data: frameData
+            });
+
+            fontIndex++;
+            setTimeout(captureFrame, 100); // Short delay for processing
+          };
+
+          captureFrame();
+        };
+
+        var createPngZip = function (frames) {
+          // For now, download the first frame as a sample
+          // In a full implementation, you'd use JSZip library
+          if (frames.length > 0) {
+            var link = document.createElement('a');
+            link.href = frames[0].data;
+            link.download = 'transparent_font_animation_frame_001.png';
+            link.click();
+            
+            // Download all frames individually
+            frames.forEach(function (frame, index) {
+              setTimeout(function () {
+                var link = document.createElement('a');
+                link.href = frame.data;
+                link.download = frame.name;
+                link.click();
+              }, index * 200);
+            });
+          }
+          
+          setIsRecording(false);
         };
 
         var recordAsGif = function () {
@@ -244,8 +329,12 @@
             }
 
             // Clear canvas
-            ctx.fillStyle = bgColor === '#00000000' ? '#ffffff' : bgColor;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (transparentBackground) {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+            } else {
+              ctx.fillStyle = bgColor === '#00000000' ? '#ffffff' : bgColor;
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
 
             // Draw text
             var font = selectedFonts[fontIndex];
@@ -454,6 +543,16 @@
                     <option value="gif">GIF (PNG fallback)</option>
                   </select>
                 </label>
+
+                <label className="flex items-center space-x-2">
+                  <input 
+                    type="checkbox" 
+                    checked={transparentBackground} 
+                    onChange={function (e) { setTransparentBackground(e.target.checked); }}
+                    disabled={isRecording}
+                  />
+                  <span className="text-sm font-medium">Transparent background</span>
+                </label>
                 
                 <button
                   type="button"
@@ -485,11 +584,27 @@
                   <strong>Note:</strong> GIF generation uses gif.js library for proper animated GIF output.
                 </div>
               )}
+              
+              {transparentBackground && (
+                <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
+                  <strong>Transparent mode:</strong> Exports PNG sequence with transparent background. Perfect for overlaying on other video content.
+                </div>
+              )}
             </div>
 
             {/* Preview */}
             <div className="mt-8">
-              <div id="preview-container" className="w-full relative border rounded-lg overflow-hidden" style={{ backgroundColor: bgColor, color: fontColor }}>
+              <div 
+                id="preview-container" 
+                className={`w-full relative border rounded-lg overflow-hidden ${transparentBackground ? 'bg-opacity-0' : ''}`}
+                style={{ 
+                  backgroundColor: transparentBackground ? 'transparent' : bgColor,
+                  color: fontColor,
+                  backgroundImage: transparentBackground ? 'linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)' : 'none',
+                  backgroundSize: transparentBackground ? '20px 20px' : 'auto',
+                  backgroundPosition: transparentBackground ? '0 0, 0 10px, 10px -10px, -10px 0px' : 'auto'
+                }}
+              >
                 <div style={{ paddingTop: aspectPadding }}></div>
                 <div className="absolute inset-0 flex items-center justify-center p-4">
                   <span className="break-words text-center" style={{ fontFamily: currentFont, fontSize: 'clamp(2rem, 10vw, 8rem)' }}>
